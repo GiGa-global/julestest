@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_personal_protection_element_user,personal.protection.element.user,model_personal_protection_element,base.group_user,1,1,1,1
+access_employee_protection_element_user,employee.protection.element.user,model_employee_protection_element,base.group_user,1,1,1,1

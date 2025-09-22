@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Tree View -->
+        <record id="view_personal_protection_element_tree" model="ir.ui.view">
+            <field name="name">personal.protection.element.tree</field>
+            <field name="model">personal.protection.element</field>
+            <field name="arch" type="xml">
+                <tree string="Personal Protection Elements">
+                    <field name="name"/>
+                    <field name="type"/>
+                    <field name="standard"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Form View -->
+        <record id="view_personal_protection_element_form" model="ir.ui.view">
+            <field name="name">personal.protection.element.form</field>
+            <field name="model">personal.protection.element</field>
+            <field name="arch" type="xml">
+                <form string="Personal Protection Element">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="type"/>
+                            <field name="usage"/>
+                            <field name="standard"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_personal_protection_element" model="ir.actions.act_window">
+            <field name="name">Personal Protection Elements</field>
+            <field name="res_model">personal.protection.element</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <!-- Menu Item -->
+        <menuitem id="menu_personal_protection_element"
+                  name="Protection Elements"
+                  parent="hr.menu_hr_root"
+                  action="action_personal_protection_element"
+                  sequence="50"/>
+
+    </data>
+</odoo>

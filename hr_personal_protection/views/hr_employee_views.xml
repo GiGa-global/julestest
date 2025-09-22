@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_employee_form_protection_inherit" model="ir.ui.view">
+            <field name="name">hr.employee.form.protection.inherit</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook" position="inside">
+                    <page string="Entrega de EPP">
+                        <field name="protection_element_ids">
+                            <tree>
+                                <field name="date"/>
+                                <field name="element_id"/>
+                                <field name="quantity"/>
+                            </tree>
+                        </field>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>
