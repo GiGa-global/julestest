@@ -7,7 +7,7 @@
             <field name="name">personal.protection.element.tree</field>
             <field name="model">personal.protection.element</field>
             <field name="arch" type="xml">
-                <tree string="Personal Protection Elements">
+                <tree>
                     <field name="name"/>
                     <field name="type"/>
                     <field name="standard"/>
