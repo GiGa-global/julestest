@@ -41,7 +41,7 @@ class SaleOrder(models.Model):
         for order in self:
             order.anticipo_porcentaje_fijo = order.anticipo_porcentaje
 
-    @api.depends('amount_total', 'anticipo_porcentaje_fijo', 'anticipo_porcentaje')
+    @api.depends('amount_total', 'anticipo_porcentaje_fijo')
     def _compute_monto_anticipo(self):
         for order in self:
             if order.anticipo_porcentaje_fijo > 0:
