@@ -6,9 +6,14 @@
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
-                <xpath expr="//field[@name='amount_total']" position="after">
-                    <field name="anticipo_porcentaje" class="oe_subtotal_footer_separator" />
-                    <field name="monto_anticipo" />
+                <!--
+                    This XPath is more robust as it doesn't depend on a specific field,
+                    but on the totals group, which is more stable across different Odoo versions
+                    and configurations with other modules installed.
+                -->
+                <xpath expr="//group[hasclass('oe_subtotal_footer')]" position="inside">
+                    <field name="anticipo_porcentaje" class="oe_subtotal_footer_separator"/>
+                    <field name="monto_anticipo"/>
                 </xpath>
             </field>
         </record>

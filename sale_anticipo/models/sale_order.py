@@ -5,57 +5,57 @@ from odoo import models, fields, api
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
+    # This is the raw stored value (source of truth), set by the user via one of the computed fields below.
+    anticipo_porcentaje_fijo = fields.Float(
+        string='Porcentaje de Anticipo Fijo',
+        digits='Discount',
+        copy=True
+    )
+
+    # Computed field for user interaction (Percentage)
     anticipo_porcentaje = fields.Float(
         string='Anticipo %',
+        compute='_compute_anticipo_porcentaje',
+        inverse='_inverse_anticipo_porcentaje',
+        store=True,
+        readonly=False,
         digits='Discount',
     )
 
+    # Computed field for user interaction (Amount)
     monto_anticipo = fields.Monetary(
         string='Monto Anticipo',
+        compute='_compute_monto_anticipo',
+        inverse='_inverse_monto_anticipo',
+        store=True,
+        readonly=False,
         currency_field='currency_id',
     )
 
-    # This field tracks the last user input to resolve conflicts.
-    # It's not meant to be shown in the UI.
-    anticipo_source = fields.Selection(
-        [('percent', 'Porcentaje'), ('amount', 'Monto')],
-        string="Fuente del Anticipo"
-    )
+    @api.depends('anticipo_porcentaje_fijo')
+    def _compute_anticipo_porcentaje(self):
+        for order in self:
+            order.anticipo_porcentaje = order.anticipo_porcentaje_fijo
 
-    @api.onchange('order_line')
-    def _onchange_order_line(self):
-        """
-        Recalculates anticipo when order lines change.
-        It respects the last input source.
-        """
-        if self.anticipo_source == 'percent':
-            self._onchange_anticipo_porcentaje()
-        elif self.anticipo_source == 'amount':
-            self._onchange_monto_anticipo()
+    def _inverse_anticipo_porcentaje(self):
+        for order in self:
+            order.anticipo_porcentaje_fijo = order.anticipo_porcentaje
 
-    @api.onchange('anticipo_porcentaje')
-    def _onchange_anticipo_porcentaje(self):
-        """
-        Calculates amount from percentage.
-        """
-        if self.anticipo_porcentaje is not None:
-            # To prevent this onchange from triggering the other one, we check if we are in an onchange context for monto_anticipo
-            # A simpler way is to check if the value is what we expect
-            expected_monto = self.amount_total * (self.anticipo_porcentaje / 100)
-            if round(self.monto_anticipo, 2) != round(expected_monto, 2):
-                self.monto_anticipo = expected_monto
-                self.anticipo_source = 'percent'
+    @api.depends('amount_total', 'anticipo_porcentaje_fijo')
+    def _compute_monto_anticipo(self):
+        for order in self:
+            if order.anticipo_porcentaje_fijo > 0:
+                order.monto_anticipo = order.amount_total * (order.anticipo_porcentaje_fijo / 100)
+            else:
+                # If monto_anticipo was set manually, this would overwrite it.
+                # The inverse method on monto_anticipo should be the only way to set a value that
+                # is not based on the percentage.
+                # The logic holds: the percentage is the source of truth.
+                order.monto_anticipo = 0.0
 
-    @api.onchange('monto_anticipo')
-    def _onchange_monto_anticipo(self):
-        """
-        Calculates percentage from amount.
-        """
-        if self.monto_anticipo is not None and self.amount_total > 0:
-            expected_porcentaje = (self.monto_anticipo / self.amount_total) * 100
-            if round(self.anticipo_porcentaje, 2) != round(expected_porcentaje, 2):
-                self.anticipo_porcentaje = expected_porcentaje
-                self.anticipo_source = 'amount'
-        elif self.amount_total == 0 and self.monto_anticipo != 0:
-            self.anticipo_porcentaje = 0.0
-            self.anticipo_source = 'amount'
+    def _inverse_monto_anticipo(self):
+        for order in self:
+            if order.amount_total > 0 and order.monto_anticipo > 0:
+                order.anticipo_porcentaje_fijo = (order.monto_anticipo / order.amount_total) * 100
+            else:
+                order.anticipo_porcentaje_fijo = 0.0
