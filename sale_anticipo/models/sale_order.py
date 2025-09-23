@@ -72,8 +72,11 @@ class SaleOrder(models.Model):
     def _compute_note_dinamico(self):
         for order in self:
             if order.note:
-                # Format the amount with currency
-                amount_text = f"{order.currency_id.symbol} {order.monto_anticipo:,.2f}"
+                # Safely format the amount, checking for currency_id to prevent errors on records
+                # where it might be missing.
+                amount_text = f"{order.monto_anticipo:,.2f}"
+                if order.currency_id:
+                    amount_text = f"{order.currency_id.symbol} {amount_text}"
                 order.note_dinamico = order.note.replace('$Monto', amount_text)
             else:
                 order.note_dinamico = False
