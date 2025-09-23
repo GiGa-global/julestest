@@ -13,6 +13,12 @@
                     <field name="anticipo_porcentaje" class="oe_subtotal_footer_separator"/>
                     <field name="monto_anticipo"/>
                 </xpath>
+
+                <!-- Replace the original note field with our dynamic one -->
+                <xpath expr="//field[@name='note']" position="replace">
+                    <field name="note" invisible="1"/>
+                    <field name="note_dinamico" nolabel="1" readonly="1"/>
+                </xpath>
             </field>
         </record>
     </data>

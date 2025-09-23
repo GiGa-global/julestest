@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_saleorder_document_anticipo" inherit_id="sale.report_saleorder_document">
+        <!-- Replace the standard note with our dynamic note -->
+        <xpath expr="//p[@t-field='doc.note']" position="replace">
+            <p t-field="doc.note_dinamico"/>
+        </xpath>
+    </template>
+</odoo>
