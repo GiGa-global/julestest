@@ -1,57 +1,53 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api
+from odoo.tools import float_is_zero
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    # This is the raw stored value, not shown on the UI.
-    anticipo_porcentaje_fijo = fields.Float(
-        string='Porcentaje de Anticipo Fijo',
-        digits='Discount',
-        copy=True
-    )
-
-    # Computed field for user interaction (Percentage)
     anticipo_porcentaje = fields.Float(
         string='Anticipo %',
-        compute='_compute_anticipo_porcentaje',
-        inverse='_inverse_anticipo_porcentaje',
-        store=True,
-        readonly=False,
         digits='Discount',
     )
 
-    # Computed field for user interaction (Amount)
     monto_anticipo = fields.Monetary(
         string='Monto Anticipo',
-        compute='_compute_monto_anticipo',
-        inverse='_inverse_monto_anticipo',
-        store=True,
-        readonly=False,
         currency_field='currency_id',
     )
 
-    @api.depends('anticipo_porcentaje_fijo')
-    def _compute_anticipo_porcentaje(self):
-        for order in self:
-            order.anticipo_porcentaje = order.anticipo_porcentaje_fijo
+    @api.onchange('anticipo_porcentaje')
+    def _onchange_anticipo_porcentaje(self):
+        """
+        Calculates the amount when the percentage is changed.
+        The check on the existing value prevents recursion.
+        """
+        # This guard is to prevent the onchange from running in a loop.
+        # We check if the expected value is already set.
+        if self.anticipo_porcentaje is not None:
+            expected_monto = self.amount_total * (self.anticipo_porcentaje / 100)
+            if not float_is_zero(self.monto_anticipo - expected_monto, precision_digits=2):
+                self.monto_anticipo = expected_monto
 
-    def _inverse_anticipo_porcentaje(self):
-        for order in self:
-            order.anticipo_porcentaje_fijo = order.anticipo_porcentaje
-
-    @api.depends('amount_total', 'anticipo_porcentaje_fijo')
-    def _compute_monto_anticipo(self):
-        for order in self:
-            if order.anticipo_porcentaje_fijo > 0:
-                order.monto_anticipo = order.amount_total * (order.anticipo_porcentaje_fijo / 100)
+    @api.onchange('monto_anticipo')
+    def _onchange_monto_anticipo(self):
+        """
+        Calculates the percentage when the amount is changed.
+        The check on the existing value prevents recursion.
+        """
+        if self.monto_anticipo is not None:
+            if self.amount_total > 0:
+                expected_porcentaje = (self.monto_anticipo / self.amount_total) * 100
+                if not float_is_zero(self.anticipo_porcentaje - expected_porcentaje, precision_digits=2):
+                    self.anticipo_porcentaje = expected_porcentaje
             else:
-                order.monto_anticipo = 0.0
+                self.anticipo_porcentaje = 0.0
 
-    def _inverse_monto_anticipo(self):
-        for order in self:
-            if order.amount_total > 0 and order.monto_anticipo > 0:
-                order.anticipo_porcentaje_fijo = (order.monto_anticipo / order.amount_total) * 100
-            else:
-                order.anticipo_porcentaje_fijo = 0.0
+    @api.onchange('amount_total')
+    def _onchange_amount_total(self):
+        """
+        Recalculates the down payment amount if the order total changes,
+        respecting the percentage as the source of truth.
+        """
+        if self.anticipo_porcentaje is not None:
+            self.monto_anticipo = self.amount_total * (self.anticipo_porcentaje / 100)
