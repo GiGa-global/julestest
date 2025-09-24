@@ -35,15 +35,6 @@ class SaleOrder(models.Model):
         currency_field='currency_id',
     )
 
-    # --- Dynamic Note Field for Report ---
-    # This field is computed only for the report and does not replace the editable 'note' field in the form view.
-
-    note_for_report = fields.Html(
-        string='Nota para Reporte',
-        compute='_compute_note_for_report',
-        store=False, # No need to store, computed on the fly for printing.
-    )
-
     # --- Compute / Inverse Methods ---
 
     @api.depends('anticipo_porcentaje_fijo')
@@ -69,14 +60,3 @@ class SaleOrder(models.Model):
                 order.anticipo_porcentaje_fijo = (order.monto_anticipo / order.amount_total) * 100
             else:
                 order.anticipo_porcentaje_fijo = 0.0
-
-    @api.depends('note', 'monto_anticipo', 'currency_id')
-    def _compute_note_for_report(self):
-        for order in self:
-            if order.note:
-                amount_text = f"{order.monto_anticipo:,.2f}"
-                if order.currency_id:
-                    amount_text = f"{order.currency_id.symbol} {amount_text}"
-                order.note_for_report = order.note.replace('$Monto', amount_text)
-            else:
-                order.note_for_report = False
