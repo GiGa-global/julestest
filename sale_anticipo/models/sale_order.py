@@ -5,7 +5,10 @@ from odoo import models, fields, api
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    # This is the raw stored value (source of truth), set by the user via one of the computed fields below.
+    # --- Down Payment Calculation Fields ---
+    # Using the robust compute/inverse pattern with a stored "source of truth" field.
+
+    # This is the raw stored value, not shown on the UI.
     anticipo_porcentaje_fijo = fields.Float(
         string='Porcentaje de Anticipo Fijo',
         digits='Discount',
@@ -32,6 +35,17 @@ class SaleOrder(models.Model):
         currency_field='currency_id',
     )
 
+    # --- Dynamic Note Field for Report ---
+    # This field is computed only for the report and does not replace the editable 'note' field in the form view.
+
+    note_for_report = fields.Html(
+        string='Nota para Reporte',
+        compute='_compute_note_for_report',
+        store=False, # No need to store, computed on the fly for printing.
+    )
+
+    # --- Compute / Inverse Methods ---
+
     @api.depends('anticipo_porcentaje_fijo')
     def _compute_anticipo_porcentaje(self):
         for order in self:
@@ -47,10 +61,6 @@ class SaleOrder(models.Model):
             if order.anticipo_porcentaje_fijo > 0:
                 order.monto_anticipo = order.amount_total * (order.anticipo_porcentaje_fijo / 100)
             else:
-                # If monto_anticipo was set manually, this would overwrite it.
-                # The inverse method on monto_anticipo should be the only way to set a value that
-                # is not based on the percentage.
-                # The logic holds: the percentage is the source of truth.
                 order.monto_anticipo = 0.0
 
     def _inverse_monto_anticipo(self):
@@ -60,23 +70,13 @@ class SaleOrder(models.Model):
             else:
                 order.anticipo_porcentaje_fijo = 0.0
 
-    # --- Dynamic Terms & Conditions ---
-
-    note_dinamico = fields.Html(
-        string='Términos y Condiciones Dinámicos',
-        compute='_compute_note_dinamico',
-        store=False, # This should not be stored, it's always computed on the fly
-    )
-
     @api.depends('note', 'monto_anticipo', 'currency_id')
-    def _compute_note_dinamico(self):
+    def _compute_note_for_report(self):
         for order in self:
             if order.note:
-                # Safely format the amount, checking for currency_id to prevent errors on records
-                # where it might be missing.
                 amount_text = f"{order.monto_anticipo:,.2f}"
                 if order.currency_id:
                     amount_text = f"{order.currency_id.symbol} {amount_text}"
-                order.note_dinamico = order.note.replace('$Monto', amount_text)
+                order.note_for_report = order.note.replace('$Monto', amount_text)
             else:
-                order.note_dinamico = False
+                order.note_for_report = False

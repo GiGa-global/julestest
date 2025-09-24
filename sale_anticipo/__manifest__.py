@@ -9,15 +9,16 @@
         Este módulo agrega un campo de porcentaje de anticipo y el monto del anticipo calculado en la orden de venta.
     """,
 
-    'author': "Jules",
-    'website': "https://www.example.com",
+    'author': "GiGa global SG15",
+    'website': "https://www.gigaglobal.com.ar",
 
     'category': 'Sales',
-    'version': '1.0',
+    'version': '18.0.0.5',
 
     'depends': ['sale_management'],
 
     'data': [
         'views/sale_order_view.xml',
+        'views/sale_report_templates.xml',
     ],
 }
