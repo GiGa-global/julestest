@@ -6,18 +6,15 @@
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
-                <!-- Add the down payment fields to the totals section -->
-                <xpath expr="//group[hasclass('oe_subtotal_footer')]" position="inside">
+                <!--
+                    Using the universally compatible XPath syntax for finding a class
+                    instead of 'hasclass' to prevent any potential rendering issues.
+                -->
+                <xpath expr="//group[contains(concat(' ', normalize-space(@class), ' '), ' oe_subtotal_footer ')]" position="inside">
                     <field name="anticipo_porcentaje_fijo" invisible="1"/>
                     <field name="anticipo_porcentaje" class="oe_subtotal_footer_separator"/>
                     <field name="monto_anticipo"/>
                 </xpath>
-
-                <!--
-                    The modification for the 'note' field is removed from the form view.
-                    This ensures the user can always edit the Terms & Conditions on the screen.
-                    The dynamic replacement will only happen in the printed report.
-                -->
             </field>
         </record>
     </data>
