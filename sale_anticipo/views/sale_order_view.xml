@@ -6,10 +6,6 @@
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
-                <!--
-                    Using the universally compatible XPath syntax for finding a class
-                    instead of 'hasclass' to prevent any potential rendering issues.
-                -->
                 <xpath expr="//group[contains(concat(' ', normalize-space(@class), ' '), ' oe_subtotal_footer ')]" position="inside">
                     <field name="anticipo_porcentaje_fijo" invisible="1"/>
                     <field name="anticipo_porcentaje" class="oe_subtotal_footer_separator"/>

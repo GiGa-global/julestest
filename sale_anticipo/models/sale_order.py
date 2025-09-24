@@ -5,9 +5,6 @@ from odoo import models, fields, api
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    # --- Down Payment Calculation Fields ---
-    # Using the robust compute/inverse pattern with a stored "source of truth" field.
-
     # This is the raw stored value, not shown on the UI.
     anticipo_porcentaje_fijo = fields.Float(
         string='Porcentaje de Anticipo Fijo',
@@ -34,8 +31,6 @@ class SaleOrder(models.Model):
         readonly=False,
         currency_field='currency_id',
     )
-
-    # --- Compute / Inverse Methods ---
 
     @api.depends('anticipo_porcentaje_fijo')
     def _compute_anticipo_porcentaje(self):
